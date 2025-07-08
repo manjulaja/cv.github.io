@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vietnam Dong Converter</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        .result { font-size: 1.2em; margin-top: 10px; }
+        small { color: #888; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container d-flex flex-column justify-content-center align-items-center min-vh-100">
+    <div class="card shadow p-4 w-100" style="max-width: 400px;">
+        <h3 class="mb-4 text-center">
+            <img src="https://cdn-icons-png.flaticon.com/512/197/197473.png" width="32" style="vertical-align:middle;margin-right:8px;">
+            VND to USD & LKR
+        </h3>
+        <div class="form-group">
+            <label for="currencySelect" class="font-weight-bold">Input Currency:</label>
+            <select class="form-control mb-2" id="currencySelect">
+                <option value="VND" selected>Vietnam Dong (VND)</option>
+                <option value="USD">US Dollar (USD)</option>
+                <option value="LKR">Sri Lankan Rupee (LKR)</option>
+            </select>
+            <label for="amountInput" class="font-weight-bold" id="inputLabel">Vietnam Dong (VND):</label>
+            <input type="text" class="form-control form-control-lg text-right" id="amountInput" placeholder="e.g., 1,000,000" autocomplete="off" inputmode="numeric">
+            <small class="form-text text-muted" id="exampleText">Try: 1,000,000 or 10,000,000</small>
+        </div>
+        <div class="result mt-4 text-center" id="result" style="min-height:60px;"></div>
+    </div>
+</div>
+<script>
+    const VND_TO_USD = 0.000039;
+    const VND_TO_LKR = 0.0125;
+
+    function formatNumber(num) {
+        return num.toLocaleString('en-US', {maximumFractionDigits: 2});
+    }
+
+    function updateLabels() {
+        const currency = $('#currencySelect').val();
+        if (currency === 'VND') {
+            $('#inputLabel').text('Vietnam Dong (VND):');
+            $('#amountInput').attr('placeholder', 'e.g., 1,000,000');
+            $('#exampleText').text('Try: 1,000,000 or 10,000,000');
+        } else if (currency === 'USD') {
+            $('#inputLabel').text('US Dollar (USD):');
+            $('#amountInput').attr('placeholder', 'e.g., 100');
+            $('#exampleText').text('Try: 100 or 500');
+        } else {
+            $('#inputLabel').text('Sri Lankan Rupee (LKR):');
+            $('#amountInput').attr('placeholder', 'e.g., 10,000');
+            $('#exampleText').text('Try: 10,000 or 50,000');
+        }
+        $('#amountInput').val('');
+        $('#result').html('<span class="text-muted">Enter amount to see conversion.</span>');
+    }
+
+    function updateResult() {
+        let currency = $('#currencySelect').val();
+        let inputStr = $('#amountInput').val().replace(/,/g, '');
+        let amount = parseFloat(inputStr);
+        if (isNaN(amount) || amount <= 0) {
+            $('#result').html('<span class="text-danger">Please enter a valid number.</span>');
+            return;
+        }
+        let vnd, usd, lkr;
+        if (currency === 'VND') {
+            vnd = amount;
+            usd = vnd * VND_TO_USD;
+            lkr = vnd * VND_TO_LKR;
+            $('#result').html(
+                `<div class="mb-2"><span style="font-size:1.5em;">💵</span> <b>USD:</b> <span class="text-success" style="font-size:1.3em;">$${formatNumber(usd)}</span></div>` +
+                `<div><span style="font-size:1.5em;">🇱🇰</span> <b>LKR:</b> <span class="text-primary" style="font-size:1.3em;">Rs. ${formatNumber(lkr)}</span></div>`
+            );
+        } else if (currency === 'USD') {
+            usd = amount;
+            vnd = usd / VND_TO_USD;
+            lkr = vnd * VND_TO_LKR;
+            $('#result').html(
+                `<div class="mb-2"><span style="font-size:1.5em;">🇻🇳</span> <b>VND:</b> <span class="text-warning" style="font-size:1.3em;">${formatNumber(vnd)}</span></div>` +
+                `<div><span style="font-size:1.5em;">🇱🇰</span> <b>LKR:</b> <span class="text-primary" style="font-size:1.3em;">Rs. ${formatNumber(lkr)}</span></div>`
+            );
+        } else {
+            lkr = amount;
+            vnd = lkr / VND_TO_LKR;
+            usd = vnd * VND_TO_USD;
+            $('#result').html(
+                `<div class="mb-2"><span style="font-size:1.5em;">🇻🇳</span> <b>VND:</b> <span class="text-warning" style="font-size:1.3em;">${formatNumber(vnd)}</span></div>` +
+                `<div><span style="font-size:1.5em;">💵</span> <b>USD:</b> <span class="text-success" style="font-size:1.3em;">$${formatNumber(usd)}</span></div>`
+            );
+        }
+    }
+
+    // Real-time conversion as user types
+    $('#amountInput').on('input', function() {
+        let value = $(this).val().replace(/,/g, '');
+        value = value.replace(/[^\d.]/g, '');
+        // Only allow one decimal point
+        if ((value.match(/\./g) || []).length > 1) {
+            value = value.replace(/\.+$/, '');
+        }
+        if (value.length > 0) {
+            // Format with thousand separators, keep decimals
+            let parts = value.split('.');
+            parts[0] = Number(parts[0]).toLocaleString('en-US');
+            $(this).val(parts.join('.'));
+        } else {
+            $(this).val('');
+        }
+        updateResult();
+    });
+
+    // Change input label and clear on currency change
+    $('#currencySelect').on('change', function() {
+        updateLabels();
+    });
+
+    // Initial setup
+    updateLabels();
+</script>
+</body>
+</html>
